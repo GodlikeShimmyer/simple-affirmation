@@ -1,14 +1,14 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 
-// Initialize the Resend client with the API key from environment variables
+// Initialize Resend client with the API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// In-memory storage for verification codes (production: use Redis or a database)
+// In-memory storage for verification codes (use Redis or database in production)
 const verificationCodes = new Map<string, { code: string; expires: number }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Check if the request method is POST
+  // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -17,23 +17,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Extract email from request body
     const { email } = req.body;
 
+    // If email is missing, return error
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Generate 6-digit verification code
+    // Generate a 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
 
-    // Store the verification code in memory
+    // Store the verification code in memory (use a DB or Redis in production)
     verificationCodes.set(email, { code, expires });
 
-    // Send the verification email using the Resend API
+    // Send the verification email via Resend API
     try {
-      // Send the email via Resend's correct `send` method
       await resend.send({
         from: 'onboarding@resend.dev',
-        to: [email], // Ensure this is an array of recipients
+        to: [email], // Ensure email is an array
         subject: 'Your Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -69,13 +69,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Return a success response if the email was sent
+    // Return success response
     return res.status(200).json({
       success: true,
       message: 'Verification code sent to your email',
     });
   } catch (err: any) {
-    // Log the error and return a generic error message
     console.error('Send verification error:', err);
     return res.status(500).json({
       error: 'Failed to send verification code',
