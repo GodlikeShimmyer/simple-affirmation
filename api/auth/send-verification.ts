@@ -3,7 +3,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// In-memory storage for verification codes (in production, use Redis or database)
+// In-memory storage for verification codes (production: use Redis or database)
 export const verificationCodes = new Map<string, { code: string; expires: number }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -13,19 +13,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
 
     // Generate 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    // Store verification code
+    // Store verification code in memory
     verificationCodes.set(email, { code, expires });
 
     // Send verification email via Resend
     try {
       await resend.emails.send({
-        from: 'AI Creator Studio <onboarding@resend.dev>',
+        from: 'onboarding@resend.dev',
         to: [email],
         subject: 'Your Verification Code',
         html: `
@@ -45,26 +48,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             <p style="color: #999; font-size: 12px; margin-top: 30px;">
               If you didn't request this code, please ignore this email.
             </p>
+            <p style="color: #999; font-size: 12px; margin-top: 10px;">
+              Thank you for using our service.
+            </p>
           </div>
         `,
       });
 
       console.log(`Verification code sent to ${email}`);
     } catch (emailError: any) {
-      console.error('Resend error:', emailError);
-      // If Resend fails (e.g., API key not set), log the code for development
+      console.error('Resend API error:', emailError);
       console.log(`Verification code for ${email}: ${code}`);
+      return res.status(500).json({
+        error: 'Failed to send verification email',
+        details: emailError.message || emailError,
+      });
     }
 
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Verification code sent to your email'
+    return res.status(200).json({
+      success: true,
+      message: 'Verification code sent to your email',
     });
   } catch (err: any) {
     console.error('Send verification error:', err);
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Failed to send verification code',
-      details: err.message 
+      details: err.message,
     });
   }
 }
