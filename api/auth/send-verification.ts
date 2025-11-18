@@ -7,6 +7,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // In-memory storage for verification codes (use Redis or database in production)
 const verificationCodes = new Map<string, { code: string; expires: number }>();
 
+export { verificationCodes };
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST method
   if (req.method !== 'POST') {
@@ -31,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Send the verification email via Resend API
     try {
-      await resend.send({
+      await resend.sendEmail({
         from: 'onboarding@resend.dev',
         to: [email], // Ensure email is an array
         subject: 'Your Verification Code',
