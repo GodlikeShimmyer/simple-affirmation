@@ -1,4 +1,58 @@
-# Welcome to your Lovable project
+# AI Creator Studio
+
+A full-featured AI-powered creative platform with video generation, editing, thumbnail creation, and graphic design capabilities.
+
+## Features
+
+- 🎬 **AI Video Generation** - Generate videos from text prompts using Sora AI
+- ✂️ **AI Video Editing** - Edit videos with AI-powered tools
+- 🖼️ **Thumbnail Creator** - Create eye-catching thumbnails with AI
+- 🎨 **Graphic Designer** - Generate logos, social posts, flyers, and more
+- 🔐 **Authentication** - Secure email verification system
+
+## Environment Variables
+
+This project requires the following environment variables to be set in Vercel:
+
+### Required
+
+- `OPENAI_API_KEY` - Your OpenAI API key (for AI features)
+- `RESEND_API_KEY` - Your Resend API key (for email verification)
+
+### Setting up in Vercel
+
+1. Go to your Vercel project settings
+2. Navigate to "Environment Variables"
+3. Add the required variables:
+   - `OPENAI_API_KEY`: Get from https://platform.openai.com/api-keys
+   - `RESEND_API_KEY`: Get from https://resend.com/api-keys
+
+**Important**: Never commit API keys to version control. They should only exist as environment variables in Vercel.
+
+## API Endpoints
+
+### Design Generation
+`POST /api/design/generate`
+- Generates designs using OpenAI DALL-E
+
+### Thumbnail Generation
+`POST /api/thumbnail/generate`
+- Creates thumbnails with AI
+
+### Video Generation
+`POST /api/video/generate`
+- Generates videos using Sora AI
+
+### Video Processing
+`POST /api/video/process`
+- Edits existing videos with AI
+
+### Email Verification
+`POST /api/auth/send-verification`
+- Sends verification codes via email
+
+`POST /api/auth/verify-email`
+- Verifies email codes
 
 ## Project info
 
