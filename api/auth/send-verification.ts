@@ -1,41 +1,33 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 
-// Initialize Resend client with the API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-// In-memory storage for verification codes (use Redis or database in production)
-const verificationCodes = new Map<string, { code: string; expires: number }>();
-
-export { verificationCodes };
+const verificationCodes = new Map<string, { code: string, expires: number }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Extract email from request body
     const { email } = req.body;
 
-    // If email is missing, return error
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    // Generate a 6-digit verification code
+    // Generate 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
+    const expires = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    // Store the verification code in memory (use a DB or Redis in production)
+    // Store verification code in memory
     verificationCodes.set(email, { code, expires });
 
-    // Send the verification email via Resend API
+    // Send verification email via Resend
     try {
-      await resend.sendEmail({
+      // Assuming this is the correct method
+      await resend.send({
         from: 'onboarding@resend.dev',
-        to: [email], // Ensure email is an array
+        to: [email], // Ensure this is an array of recipients
         subject: 'Your Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -71,7 +63,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Return success response
     return res.status(200).json({
       success: true,
       message: 'Verification code sent to your email',
