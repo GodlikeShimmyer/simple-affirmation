@@ -1,13 +1,20 @@
+import { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 
+// Initialize the Resend client with the API key from environment variables
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// In-memory storage for verification codes (production: use Redis or a database)
+const verificationCodes = new Map<string, { code: string; expires: number }>();
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Check if the request method is POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Extract email from request body
     const { email } = req.body;
 
     if (!email) {
@@ -16,15 +23,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Generate 6-digit verification code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    const expires = Date.now() + 15 * 60 * 1000; // Code expires in 15 minutes
 
-    // Store verification code in memory
+    // Store the verification code in memory
     verificationCodes.set(email, { code, expires });
 
-    // Send verification email via Resend
+    // Send the verification email using the Resend API
     try {
-      // Check if send method or object syntax is correct for your Resend version
-      await resend.sendEmail({
+      // Send the email via Resend's correct `send` method
+      await resend.send({
         from: 'onboarding@resend.dev',
         to: [email], // Ensure this is an array of recipients
         subject: 'Your Verification Code',
@@ -62,11 +69,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // Return a success response if the email was sent
     return res.status(200).json({
       success: true,
       message: 'Verification code sent to your email',
     });
   } catch (err: any) {
+    // Log the error and return a generic error message
     console.error('Send verification error:', err);
     return res.status(500).json({
       error: 'Failed to send verification code',
