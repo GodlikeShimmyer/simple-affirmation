@@ -1,7 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-// In-memory storage (should match send-verification.ts)
-const verificationCodes = new Map<string, { code: string; expires: number }>();
+import { verificationCodes } from './send-verification';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -34,8 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true, 
       message: 'Email verified successfully' 
     });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Internal server error' });
+  } catch (err: any) {
+    console.error('Verify email error:', err);
+    return res.status(500).json({ 
+      error: 'Verification failed',
+      details: err.message 
+    });
   }
 }
