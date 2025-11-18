@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verificationCodes } from './send-verification';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -8,35 +7,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { email, code } = req.body;
-    if (!email || !code) return res.status(400).json({ error: 'Email and code are required' });
 
-    const storedData = verificationCodes.get(email);
-    
-    if (!storedData) {
+    if (!email || !code) {
+      return res.status(400).json({ error: 'Email and code are required' });
+    }
+
+    const stored = verificationCodes.get(email);
+
+    if (!stored) {
       return res.status(400).json({ error: 'No verification code found for this email' });
     }
 
-    if (Date.now() > storedData.expires) {
-      verificationCodes.delete(email);
-      return res.status(400).json({ error: 'Verification code expired' });
+    if (stored.expires < Date.now()) {
+      return res.status(400).json({ error: 'Verification code has expired' });
     }
 
-    if (storedData.code !== code) {
+    if (stored.code !== code) {
       return res.status(400).json({ error: 'Invalid verification code' });
     }
 
-    // Code is valid, remove it
-    verificationCodes.delete(email);
+    // Successfully verified
+    verificationCodes.delete(email); // Optionally, clear the verification code
 
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Email verified successfully' 
-    });
+    return res.status(200).json({ success: true, message: 'Email verified successfully' });
   } catch (err: any) {
-    console.error('Verify email error:', err);
-    return res.status(500).json({ 
-      error: 'Verification failed',
-      details: err.message 
-    });
+    console.error('Error verifying email:', err);
+    return res.status(500).json({ error: 'Failed to verify email', details: err.message });
   }
 }
