@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verificationCodes } from './send-verification';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -27,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Successfully verified
-    verificationCodes.delete(email); // Optionally, clear the verification code
+    verificationCodes.delete(email);
 
     return res.status(200).json({ success: true, message: 'Email verified successfully' });
   } catch (err: any) {
