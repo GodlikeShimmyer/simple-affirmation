@@ -19,15 +19,18 @@ export default function Auth() {
     e.preventDefault();
     try {
       if (isLogin) {
+        // Login logic
         await login(email, password);
         toast.success('Welcome back!');
-        navigate('/dashboard');
+        navigate('/dashboard'); // Navigate to the dashboard on successful login
       } else {
+        // Signup logic
         await signup(email, password, name);
-        toast.success('Account created! Please verify your email.');
-        navigate('/verify-email', { state: { email } });
+        toast.success('Account created successfully!');
+        navigate('/dashboard'); // Navigate to the dashboard directly, no email verification needed
       }
     } catch (error: any) {
+      // Error handling for login/signup
       toast.error(error.message || (isLogin ? 'Invalid credentials' : 'Failed to create account'));
     }
   };
