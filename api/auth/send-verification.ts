@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 export const verificationCodes = new Map<string, { code: string, expires: number }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -10,6 +9,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Initialize Resend inside the handler
+    const resendApiKey = process.env.RESEND_API_KEY;
+    
+    if (!resendApiKey) {
+      console.error('RESEND_API_KEY is not set in environment variables');
+      return res.status(500).json({ error: 'Email service is not configured' });
+    }
+    
+    const resend = new Resend(resendApiKey);
+    
     const { email } = req.body;
 
     if (!email) {
