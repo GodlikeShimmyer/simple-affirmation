@@ -1,7 +1,8 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const verificationCodes = new Map<string, { code: string, expires: number }>();
+export const verificationCodes = new Map<string, { code: string, expires: number }>();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -24,10 +25,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Send verification email via Resend
     try {
-      // Assuming this is the correct method
-      await resend.send({
+      await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: [email], // Ensure this is an array of recipients
+        to: [email],
         subject: 'Your Verification Code',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
