@@ -19,18 +19,17 @@ export default function Auth() {
     e.preventDefault();
     try {
       if (isLogin) {
-        // Login logic
+        // Handle Login
         await login(email, password);
         toast.success('Welcome back!');
-        navigate('/dashboard'); // Navigate to the dashboard on successful login
+        navigate('/dashboard'); // Directly go to dashboard after login
       } else {
-        // Signup logic
+        // Handle Signup
         await signup(email, password, name);
         toast.success('Account created successfully!');
-        navigate('/dashboard'); // Navigate to the dashboard directly, no email verification needed
+        navigate('/dashboard'); // Directly go to dashboard after signup, no email verification step
       }
     } catch (error: any) {
-      // Error handling for login/signup
       toast.error(error.message || (isLogin ? 'Invalid credentials' : 'Failed to create account'));
     }
   };
@@ -48,6 +47,7 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name input for signup only */}
             {!isLogin && (
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -62,6 +62,7 @@ export default function Auth() {
                 />
               </div>
             )}
+            {/* Email input */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -74,6 +75,7 @@ export default function Auth() {
                 className="bg-background/50"
               />
             </div>
+            {/* Password input */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -86,11 +88,13 @@ export default function Auth() {
                 className="bg-background/50"
               />
             </div>
+            {/* Submit button */}
             <Button type="submit" className="w-full bg-gradient-primary">
               {isLogin ? 'Login' : 'Sign Up'}
             </Button>
           </form>
           
+          {/* Toggle between login and signup */}
           <div className="mt-6 text-center">
             <button
               type="button"
